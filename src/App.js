@@ -23,35 +23,35 @@ function App() {
   }
 
   const [myData, setMyData] = useState([]);
-  const [loading, setLoading] = useState();
-
+  const [loading, setLoading] = useState(0);
+  // const temp ;
   // create timer
-  useEffect(() => {
-    const timer = setInterval(() => tick(), 1000);
-    return () => clearInterval(timer);
-  });
-  // time condition
-  const tick = () => {
-    const sysTime = new Date();
-    const sysHours = sysTime.getHours();
-    const sysMin = sysTime.getMinutes();
-    const sysSec = sysTime.getSeconds();
-    if (
-      // sysHours >= 9 &&
-      // sysHours <= 12 &&
-      // (sysMin === 0 || sysMin === 30) &&
-      sysSec === 0 ||
-      sysSec === 20 ||
-      sysSec === 40
-    ) {
-      console.log(sysSec);
 
-      fetchData();
-    }
-  };
+  // time condition
+  useEffect(() => {
+    const tick = () => {
+      const sysTime = new Date();
+      const sysHours = sysTime.getHours();
+      const sysMin = sysTime.getMinutes();
+      const sysSec = sysTime.getSeconds();
+
+      if (
+        sysHours >= 9 &&
+        sysHours <= 12 &&
+        (sysMin === 0 || sysMin === 30) &&
+        sysSec === 0
+      ) {
+        console.log(sysSec);
+
+        fetchData();
+      }
+    };
+    const timer = setInterval(() => tick(), 1000);
+
+    return () => clearInterval(timer);
+  }, [loading]);
   // fetch data func
   const fetchData = async () => {
-    setLoading(true);
     let data;
     try {
       data = await axios.get('http://new.tsetmc.com/weatherforecast');
@@ -61,7 +61,7 @@ function App() {
     }
 
     calcRatio(data);
-    setLoading(false);
+    setLoading(loading + 1);
   };
 
   // ratio calculation
@@ -89,7 +89,7 @@ function App() {
     const sysHours = sysTime.getHours();
     const sysMin = sysTime.getMinutes();
     const sysSec = sysTime.getSeconds();
-    const time = `${sysMin} ${sysSec}`;
+    const time = `${sysHours}:${sysMin}`;
     let data = new DataRep(
       time,
       counter1,
@@ -117,12 +117,15 @@ function App() {
     `${(decimal * 100).toFixed(fixed)}%`;
 
   const renderTooltipContent = (o) => {
+    if (myData.length < 2) {
+      return null;
+    }
     const { payload, label } = o;
     const total = payload.reduce((result, entry) => result + entry.value, 0);
 
     return (
       <div className="customized-tooltip-content">
-        <p className="total">{`${label} (Total: ${total})`}</p>
+        <p className="total">{`${label}`}</p>
         <ul className="list">
           {payload.map((entry, index) => (
             <li key={`item-${index}`} style={{ color: entry.color }}>
@@ -139,7 +142,7 @@ function App() {
 
   return (
     <div className="App">
-      <ResponsiveContainer height={300} width="100%">
+      <ResponsiveContainer height={300} width={myData.length + 720}>
         <AreaChart
           data={myData}
           stackOffset="expand"
@@ -147,7 +150,7 @@ function App() {
         >
           <XAxis dataKey="timeHappend" />
           <YAxis tickFormatter={toPercent} />
-          {/* <Tooltip content={renderTooltipContent} /> */}
+          <Tooltip content={renderTooltipContent} />
           <Area
             type="monotone"
             dataKey="a"
@@ -174,14 +177,14 @@ function App() {
             dataKey="d"
             stackId="1"
             stroke="#ffffff"
-            fill="#5d80f9"
+            fill="#5d8099"
           />
           <Area
             type="monotone"
             dataKey="e"
             stackId="1"
             stroke="#ffffff"
-            fill="#5d80f9"
+            fill="#dd80f9"
           />
         </AreaChart>
       </ResponsiveContainer>
